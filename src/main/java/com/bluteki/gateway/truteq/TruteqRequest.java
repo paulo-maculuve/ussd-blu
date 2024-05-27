@@ -1,12 +1,11 @@
 package com.bluteki.gateway.truteq;
-
-import com.bluteki.gateway.truteq.ussd.RequestUssd;
+import com.bluteki.gateway.Request;
 import jakarta.servlet.http.HttpServletRequest;
 
-public class Request {
+public class TruteqRequest {
 
-    public RequestUssd httpResques(HttpServletRequest request) {
-        RequestUssd appRequest = new RequestUssd();
+    public com.bluteki.gateway.Request httpResques(HttpServletRequest request) {
+        Request appRequest = new Request();
         if (request != null) {
             if (nullcheck(request.getParameter("msisdn"))) {
                 appRequest.setMsisdn(request.getParameter("msisdn").trim());
@@ -24,7 +23,6 @@ public class Request {
                 appRequest.setMessage(request.getParameter("msg").trim());
             }
         }
-
         return appRequest;
     }
 

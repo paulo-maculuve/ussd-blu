@@ -1,19 +1,15 @@
 package com.bluteki.gateway.flares;
 
-import com.bluteki.gateway.flares.ussd.RequestUssd;
+import com.bluteki.gateway.Request;
 import jakarta.servlet.http.HttpServletRequest;
 
-public class Request {
-    public RequestUssd parseHttpRequest(HttpServletRequest request) {
+public class FlaresRequest {
+    public Request parseHttpRequest(HttpServletRequest request) {
 
-        RequestUssd appRequest = new RequestUssd();
+        Request appRequest = new Request();
         if (request != null) {
             if (nullcheck(request.getParameter("msisdn"))) {
                 appRequest.setMsisdn(request.getParameter("msisdn").trim());
-            }
-
-            if (nullcheck(request.getParameter("language"))) {
-                appRequest.setLanguage(request.getParameter("language").trim());
             }
 
             if (nullcheck(request.getParameter("msg"))) {
@@ -28,13 +24,11 @@ public class Request {
                 appRequest.setSessionId(request.getParameter("sessionid").trim());
             }
 
-            if (nullcheck(request.getParameter("shortcode"))) {
-                appRequest.setShortCode(request.getParameter("shortcode").trim());
-            }
         }
 
         return appRequest;
     }
+
     public boolean nullcheck(String value) {
         return value != null && !value.isEmpty() && value.length() != 0;
     }

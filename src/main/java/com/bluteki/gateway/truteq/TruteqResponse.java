@@ -2,54 +2,50 @@ package com.bluteki.gateway.truteq;
 
 import com.bluteki.gateway.FlowMap;
 import com.bluteki.gateway.Handler;
+import com.bluteki.gateway.Request;
 import com.bluteki.gateway.Ussd;
-import com.bluteki.gateway.truteq.ussd.RequestUssd;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.StringWriter;
 
-public class TruteqResponse implements Handler<RequestUssd> {
-
+@Component
+public class TruteqResponse implements Handler<Request> {
     private static final Logger LOGGER = Logger.getLogger(TruteqResponse.class);
+
     @Override
-    public void response(RequestUssd requestUssd, HttpServletResponse response, FlowMap type, String message) {
-        Ussd ussd = prepareUssdObject(requestUssd, message, type.getTruteq());
+    public void response(Request request, HttpServletResponse response, FlowMap type, String message) {
+        Ussd ussd = prepareUssdObject(request, message, type.getTruteq());
         response.setContentType("text/xml");
         response.setCharacterEncoding("UTF-8");
         try {
             response.getWriter().write(getXMLBuffer(ussd));
         } catch (JAXBException | IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Error writing response", e);
         }
-        logResponse(requestUssd, message, type.getTruteq());
-
+        logResponse(request, message, type.getTruteq());
     }
 
-    private Ussd prepareUssdObject(RequestUssd gatewayRequest, String message, String type) {
-        Ussd ussd = new Ussd();
-        ussd.setMsisdn(gatewayRequest.getMsisdn());
-        ussd.setSessionId(gatewayRequest.getSessionId());
-        ussd.setMsg(message);
-        ussd.setType(type);
-        return ussd;
+    private Ussd prepareUssdObject(Request request, String message, String type) {
+        return new Ussd(request.getMsisdn(), request.getSessionId(), type, message);
     }
 
     private String getXMLBuffer(Ussd ussd) throws JAXBException {
-        JAXBContext contextObj = JAXBContext.newInstance(Ussd.class);
-        Marshaller marshallerObj = contextObj.createMarshaller();
-
-        marshallerObj.setProperty("jaxb.formatted.output", true);
+        JAXBContext context = JAXBContext.newInstance(Ussd.class);
+        Marshaller marshaller = context.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         StringWriter writer = new StringWriter();
-        marshallerObj.marshal(ussd, writer);
+        marshaller.marshal(ussd, writer);
         return writer.toString();
     }
 
-    private void logResponse(RequestUssd gatewayRequest, String message, String type) {
-        LOGGER.info("MSISDN:" + gatewayRequest.getMsisdn() + "::" + "SESSION ID:" + gatewayRequest.getSessionId() + "::" + "Response:" + message + " (Type: " + type + ")");
+    private void logResponse(Request request, String message, String type) {
+        LOGGER.info(String.format("MSISDN: %s :: SESSION ID: %s :: Response: %s (Type: %s)",
+                request.getMsisdn(), request.getSessionId(), message, type));
     }
 }
